@@ -1,0 +1,13 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Image</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
+<body>
+<img th:src="${image_url}">
+<p th:text="|Chữ Hán: ${hanzi}|" />
+<p th:text="|Phiên âm: ${hanviet}|" />
+<p th:text="|Tạm dịch: ${translation}|" />
+</body>
+</html>

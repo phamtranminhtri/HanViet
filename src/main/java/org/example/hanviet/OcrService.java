@@ -95,6 +95,17 @@ public class OcrService {
         return responseData.getString("translatedText");
     }
 
+    public String filterHanzi(String rawHanzi) {
+        StringBuilder stringBuilder = new StringBuilder();
+        for (int i = 0; i < rawHanzi.length(); i++) {
+            int codePoint = rawHanzi.codePointAt(i);
+            if (Character.UnicodeScript.of(codePoint) == Character.UnicodeScript.HAN) {
+                stringBuilder.append(rawHanzi.charAt(i));
+            }
+        }
+        return stringBuilder.toString();
+    }
+
     public String doOcrImage(String imagePath) throws IOException, ParseException {
         HttpEntity multiPartHttpEntity = MultipartEntityBuilder.create()
                 .addBinaryBody("file", new File(imagePath))
@@ -113,14 +124,27 @@ public class OcrService {
         return EntityUtils.toString(httpResponse.getEntity());
     }
 
-    public String getHanviet(String hanzi) throws URISyntaxException, IOException, InterruptedException {
-        String uri = "https://hvdic.thivien.net/whv/" + URLEncoder.encode(hanzi, StandardCharsets.UTF_8);
+    public String getHanviet(char hanzi) throws URISyntaxException, IOException, InterruptedException {
+        String uri = "https://hvdic.thivien.net/whv/"
+                + URLEncoder.encode(String.valueOf(hanzi), StandardCharsets.UTF_8);
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(new URI(uri))
                 .GET()
                 .build();
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
         return response.body();
+    }
+
+    public List<List<String>> getHanviets(String hanzis)
+            throws URISyntaxException, IOException, InterruptedException
+    {
+        List<List<String>> hanviets = new ArrayList<>();
+        for (char hanzi : hanzis.toCharArray()) {
+            String hanvietHtml = getHanviet(hanzi);
+            List<String> parsedHanviet = parseHanviet(hanvietHtml);
+            hanviets.add(parsedHanviet);
+        }
+        return hanviets;
     }
 
     public String translate(String chineseText) throws URISyntaxException, IOException, InterruptedException {
