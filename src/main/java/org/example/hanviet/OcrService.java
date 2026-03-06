@@ -22,6 +22,7 @@ import javax.imageio.ImageIO;
 import javax.imageio.ImageWriteParam;
 import javax.imageio.ImageWriter;
 import javax.imageio.stream.ImageOutputStream;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -49,27 +50,65 @@ public class OcrService {
         this.ocrSpaceApiKey = ocrSpaceApiKey;
     }
 
+//    public void compressImage(String inputFilePath, String outputFilePath) throws IOException {
+//        File inputFile = new File(inputFilePath);
+//        BufferedImage bufferedImage = ImageIO.read(inputFile);
+//        Iterator<ImageWriter> imageWriterIterator = ImageIO.getImageWritersByFormatName("jpg");
+//        ImageWriter imageWriter = imageWriterIterator.next();
+//
+//        File outputFile = new File(outputFilePath);
+//        ImageOutputStream outputStream = ImageIO.createImageOutputStream(outputFile);
+//        imageWriter.setOutput(outputStream);
+//
+//        ImageWriteParam imageWriteParam = imageWriter.getDefaultWriteParam();
+//        imageWriteParam.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+//        imageWriteParam.setCompressionQuality(0.5F);
+//
+//        imageWriter.write(
+//                null,
+//                new IIOImage(bufferedImage, null, null),
+//                imageWriteParam
+//        );
+//        outputStream.close();
+//        imageWriter.dispose();
+//    }
+
     public void compressImage(String inputFilePath, String outputFilePath) throws IOException {
         File inputFile = new File(inputFilePath);
-        BufferedImage bufferedImage = ImageIO.read(inputFile);
+        BufferedImage sourceImage = ImageIO.read(inputFile);
+
+        // Create a new image with the correct color space (RGB)
+        // This strips the Alpha channel that causes the "Bogus" error
+        BufferedImage rgbImage = new BufferedImage(
+                sourceImage.getWidth(),
+                sourceImage.getHeight(),
+                BufferedImage.TYPE_INT_RGB);
+
+        // Draw the source image onto the new RGB canvas
+        Graphics2D g2d = rgbImage.createGraphics();
+        g2d.drawImage(sourceImage, 0, 0, Color.WHITE, null); // Use White background for transparency
+        g2d.dispose();
+
         Iterator<ImageWriter> imageWriterIterator = ImageIO.getImageWritersByFormatName("jpg");
         ImageWriter imageWriter = imageWriterIterator.next();
 
         File outputFile = new File(outputFilePath);
-        ImageOutputStream outputStream = ImageIO.createImageOutputStream(outputFile);
-        imageWriter.setOutput(outputStream);
+        try (ImageOutputStream outputStream = ImageIO.createImageOutputStream(outputFile)) {
+            imageWriter.setOutput(outputStream);
 
-        ImageWriteParam imageWriteParam = imageWriter.getDefaultWriteParam();
-        imageWriteParam.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
-        imageWriteParam.setCompressionQuality(0.5F);
+            ImageWriteParam imageWriteParam = imageWriter.getDefaultWriteParam();
+            imageWriteParam.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+            imageWriteParam.setCompressionQuality(0.5F);
 
-        imageWriter.write(
-                null,
-                new IIOImage(bufferedImage, null, null),
-                imageWriteParam
-        );
-        outputStream.close();
-        imageWriter.dispose();
+            // Write the NEW rgbImage, not the sourceImage
+            imageWriter.write(
+                    null,
+                    new IIOImage(rgbImage, null, null),
+                    imageWriteParam
+            );
+        } finally {
+            imageWriter.dispose();
+        }
     }
 
     public String parseOcr(String jsonString) {

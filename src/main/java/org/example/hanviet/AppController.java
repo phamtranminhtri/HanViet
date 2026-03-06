@@ -1,16 +1,20 @@
 package org.example.hanviet;
 
+import jakarta.annotation.PreDestroy;
 import org.apache.hc.core5.http.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.FileSystemUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.view.RedirectView;
 
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -36,19 +40,19 @@ public class AppController {
         if (!uploadDirectory.exists()) {
             uploadDirectory.mkdir();
         }
-        File staticImageDirectory = new File("src/main/resources/static/image");
-        if (!staticImageDirectory.exists()) {
-            staticImageDirectory.mkdir();
-        }
+//        File staticImageDirectory = new File("src/main/resources/static/image");
+//        if (!staticImageDirectory.exists()) {
+//            staticImageDirectory.mkdir();
+//        }
     }
 
-    @GetMapping("/uploadimage")
+    @GetMapping("/")
     public String displayUploadForm() {
         return "index";
     }
 
     @PostMapping("/upload")
-    public String uploadImage(Model model, @RequestParam("image") MultipartFile file)
+    public RedirectView uploadImage(Model model, @RequestParam("image") MultipartFile file)
             throws IOException, ParseException, URISyntaxException, InterruptedException
     {
 //        store file
@@ -64,8 +68,12 @@ public class AppController {
         );
         Files.write(tempFilePath, file.getBytes());
 
+//        Path compressedFilePath = Paths.get(
+//                "src/main/resources/static/image", "%d.jpg".formatted(imageEntity.getId())
+//        );
+
         Path compressedFilePath = Paths.get(
-                "src/main/resources/static/image", "%d.jpg".formatted(imageEntity.getId())
+                UPLOAD_DIRECTORY, "%d.jpg".formatted(imageEntity.getId())
         );
         ocrService.compressImage(tempFilePath.toString(), compressedFilePath.toString());
 
@@ -99,7 +107,7 @@ public class AppController {
         imageRepository.save(imageEntity);
 
         model.addAttribute("msg", "Uploaded images: " + file.getOriginalFilename());
-        return "index";
+        return new RedirectView("/view-image/%d".formatted(imageEntity.getId()));
     }
 
     @GetMapping("/view-image/{id}")
@@ -118,5 +126,10 @@ public class AppController {
     }
 
 
+    @PreDestroy
+    public void destroy() {
+//        FileSystemUtils.deleteRecursively(new File("src/main/resources/static/image"));
+        FileSystemUtils.deleteRecursively(new File("uploads"));
+    }
 
 }
