@@ -5,15 +5,33 @@
             <div class="col-md-8 mx-auto">
                 <h2>Tiện ích: nhận dạng, phiên âm, và dịch chữ Hán từ hình ảnh</h2>
                 <p th:text="${message}" th:if="${message ne null}" class="alert alert-primary"></p>
-                <form method="post" th:action="@{/upload}" enctype="multipart/form-data">
+
+                <form id="uploadForm" method="post" th:action="@{/upload}" enctype="multipart/form-data">
                     <div class="form-group">
-                        <input type="file" name="image" accept="image/*" class="form-control-file">
+                        <input type="file" name="image" accept="image/*" class="form-control-file" required>
                     </div>
-                    <button type="submit" class="btn btn-primary">Upload ảnh</button>
+                    <button type="submit" id="submitBtn" class="btn btn-primary">Upload ảnh</button>
                 </form>
+
+                <div id="loadingMessage" class="alert alert-warning mt-3" style="display: none;">
+                    Ảnh đã được gửi. Quá trình xử lý có thể mất đến 60 giây...
+                </div>
+
                 <span th:if="${msg != null}" th:text="${msg}"></span>
             </div>
         </div>
     </div>
 </section>
+
+<script>
+    document.getElementById("uploadForm").addEventListener("submit", function() {
+        // Hiển thị dòng thông báo
+        document.getElementById("loadingMessage").style.display = "block";
+
+        // Vô hiệu hóa nút submit và đổi chữ trên nút
+        const submitBtn = document.getElementById("submitBtn");
+        submitBtn.disabled = true;
+        submitBtn.innerText = "Đang xử lý...";
+    });
+</script>
 </body>
