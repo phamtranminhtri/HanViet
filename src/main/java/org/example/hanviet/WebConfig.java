@@ -11,11 +11,10 @@ import java.nio.file.Paths;
 public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        // This maps the physical "images" directory in your project root to the "/image/**" URL
-        Path imageDir = Paths.get("uploads");
-        String imagePath = imageDir.toFile().getAbsolutePath();
+        // Use toAbsolutePath() and toUri() to safely generate cross-platform file URIs
+        Path imageDir = Paths.get("uploads").toAbsolutePath();
 
         registry.addResourceHandler("/image/**")
-                .addResourceLocations("file:/" + imagePath + "/");
+                .addResourceLocations(imageDir.toUri().toString() + "/");
     }
 }

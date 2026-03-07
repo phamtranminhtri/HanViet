@@ -3,6 +3,8 @@ package org.example.hanviet;
 import jakarta.annotation.PreDestroy;
 import org.apache.hc.core5.http.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.FileSystemUtils;
@@ -10,10 +12,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.view.RedirectView;
 
+import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -136,6 +138,19 @@ public class AppController {
         model.addAttribute("translation", imageEntity.getTranslation());
         return "display_image";
     }
+
+//    @GetMapping("/image/{filename}")
+//    public ResponseEntity<BufferedImage> retrieveImage(@PathVariable String filename) {
+//        try {
+//            System.out.println(filename);
+//            BufferedImage image = ImageIO.read(new File("uploads/" + filename));
+//            return ResponseEntity.ok()
+//                    .contentType(MediaType.IMAGE_JPEG)
+//                    .body(image);
+//        } catch (IOException e) {
+//            return null;
+//        }
+//    }
 
 
     @PreDestroy
